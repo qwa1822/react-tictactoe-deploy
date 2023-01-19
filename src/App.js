@@ -1,23 +1,108 @@
-import logo from './logo.svg';
+
+import { useState } from 'react';
 import './App.css';
+import Board from './Components/Board';
+
 
 function App() {
+  const[history,sethistory]=useState([{
+    squares:Array(9).fill(null),
+  }])
+
+  console.log(history);
+  const[XisNext,setIsNext]=useState(true);
+  const[stepNumber,setStepNumber]=useState(0);
+  
+
+  const calculateWinner=(sqaures)=>{
+
+    const lines=[
+      [0,1,2],
+      [3,4,5],
+      [6,7,8],
+      [0,3,6],
+      [1,4,7],
+      [2,5,8],
+      [0,4,8],
+      [2,4,6],
+    ]
+
+    for(let index=0; index<lines.length; index++){
+      const[a,b,c]=lines[index];
+
+      if(sqaures[a] && sqaures[a]===sqaures[b] && sqaures[a]===sqaures[c]){
+        return sqaures[a];
+      }
+    }
+    return null;
+  }
+
+  const current=history[stepNumber];
+
+  const winner=calculateWinner(current.squares);
+
+
+  
+  let status;
+  if(winner){
+    status=`winner `+winner;
+
+  } else{
+    status=`next player: ${XisNext? "X":"O"}`
+  }
+
+  const handleClick=(i)=>{
+    
+    const newHistory=history.slice(0,stepNumber+1);
+    const newCurrent=newHistory[newHistory.length-1];
+    const newSquares=newCurrent.squares.slice();
+    if(calculateWinner(newSquares) ||newSquares[i]){
+      return;
+    }
+
+    newSquares[i]=XisNext?"X":"O";
+    sethistory([...newHistory,{squares:newSquares}]);
+
+    setIsNext(prev=>!prev);
+    setStepNumber(newHistory.length);
+  }
+
+  const moves=history.map((step,move)=>{
+    const desc=move?
+    "Hi ! Hello"+move:
+    "Enter Your game Start!"
+
+    return(
+      <li key={move}>
+        <button className='move-button'onClick={()=>jumpTo(move)} >{desc}</button>
+      </li>
+      
+    )
+  })
+
+
+  const jumpTo=(step)=>{
+    setStepNumber(step);
+    setIsNext((step%2)===0);
+
+
+  }
+
+
+
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="game">
+      
+      <div className='game-board'>
+      <Board squares={current.squares} onClick={(i)=>handleClick(i)}></Board>
+      </div>
+      <div className='game-info'>
+      game-info
+      <ol style={{listStyle:'none'}}>
+        {moves}
+      </ol>
+      </div>
     </div>
   );
 }
